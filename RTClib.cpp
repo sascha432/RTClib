@@ -391,8 +391,9 @@ DateTime::DateTime(const __FlashStringHelper *date,
 */
 /**************************************************************************/
 DateTime::DateTime(const char *iso8601dateTime) {
-  char ref[20];
-  strcpy_P(ref, PSTR("2000-01-01T00:00:00"));
+  static PROGMEM const char ref_P[] = "2000-01-01T00:00:00";
+  char ref[strlen_P(ref_P) + 1];
+  strcpy_P(ref, ref_P);
   memcpy(ref, iso8601dateTime, min((size_t)(sizeof(ref) - 1), strlen(iso8601dateTime)));
   yOff = conv2d(ref + 2);
   m = conv2d(ref + 5);
