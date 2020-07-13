@@ -391,8 +391,9 @@ DateTime::DateTime(const __FlashStringHelper *date,
 */
 /**************************************************************************/
 DateTime::DateTime(const char *iso8601dateTime) {
-  char ref[] = "2000-01-01T00:00:00";
-  memcpy(ref, iso8601dateTime, min(strlen(ref), strlen(iso8601dateTime)));
+  char ref[20];
+  strcpy_P(ref, PSTR("2000-01-01T00:00:00"));
+  memcpy(ref, iso8601dateTime, min((size_t)(sizeof(ref) - 1), strlen(iso8601dateTime)));
   yOff = conv2d(ref + 2);
   m = conv2d(ref + 5);
   d = conv2d(ref + 8);
@@ -465,16 +466,18 @@ bool DateTime::isValid() const {
 char *DateTime::toString(char *buffer) {
   uint8_t apTag =
       (strstr(buffer, "ap") != nullptr) || (strstr(buffer, "AP") != nullptr);
-  uint8_t hourReformatted, isPM;
+  uint8_t hourReformatted = 12;
+  uint8_t isPM = false;
   if (apTag) {     // 12 Hour Mode
-    if (hh == 0) { // midnight
-      isPM = false;
-      hourReformatted = 12;
-    } else if (hh == 12) { // noon
+    // if (hh == 0) { // midnight
+    //   isPM = false;
+    //   hourReformatted = 12;
+    // } else
+    if (hh == 12) { // noon
       isPM = true;
-      hourReformatted = 12;
+      // hourReformatted = 12;
     } else if (hh < 12) { // morning
-      isPM = false;
+      // isPM = false;
       hourReformatted = hh;
     } else { // 1 o'clock or after
       isPM = true;
@@ -701,16 +704,15 @@ String DateTime::timestamp(timestampOpt opt) {
   switch (opt) {
   case TIMESTAMP_TIME:
     // Only time
-    sprintf(buffer, "%02d:%02d:%02d", hh, mm, ss);
+    sprintf_P(buffer, PSTR("%02d:%02d:%02d"), hh, mm, ss);
     break;
   case TIMESTAMP_DATE:
     // Only date
-    sprintf(buffer, "%d-%02d-%02d", 2000 + yOff, m, d);
+    sprintf_P(buffer, PSTR("%d-%02d-%02d"), 2000 + yOff, m, d);
     break;
   default:
     // Full
-    sprintf(buffer, "%d-%02d-%02dT%02d:%02d:%02d", 2000 + yOff, m, d, hh, mm,
-            ss);
+    snprintf_P(buffer, sizeof(buffer), PSTR("%d-%02d-%02dT%02d:%02d:%02d"), 2000 + yOff, m, d, hh, mm, ss);
   }
   return String(buffer);
 }
